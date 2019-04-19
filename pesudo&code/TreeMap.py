@@ -74,3 +74,69 @@ class TreeMap(LinkedBinaryTree, MapBase):
             if p.key() < k:
                 p = self.after(p)
             return (p.key(), p.value()) if p is not None else None
+
+    def find_range(self, start, stop):
+        if not self.is_empty():
+            if start is None:
+                p = self.first()
+            else:
+                p = self.find_position(start)
+                if p.key() < start:
+                    p = self.after(p)
+            while p is not None and (stop is None or p.key() < stop):
+                yield (p.key(), p.value())
+                p = self.after(p)
+
+    def __getitem__(self, k):
+        if self.is_empty():
+            raise KeyError('Key Error: ' + repr(k))
+        else:
+            p = self._subtree_search(self.root(), k)
+            self._rebalance_acess(p)
+            if k != p.key():
+                raise KeyError('Key Error: ' + repr(k))
+            return p.value()
+    
+    def __setitem__(self, k, v):
+        if self.is_empty():
+            leaf = self._add_root(self._Item(k,v))
+        else:
+            p = self._subtree_search(self.root(), k)
+            if p.key() == k:
+                p.element()._value = v
+                self._rebalance_access(p)
+                return
+            else:
+                item = self._Item(k,v)
+                if p.key() <k:
+                    leaf = self._add_right(p, item)
+                else:
+                    leaf = self._add_left(p, item)
+        self._rebalance_insert(leaf)
+
+    def __iter__(self):
+        p = self.first()
+        while p is not None:
+            yield p.key()
+            p = self.after(p)
+
+    def delete(self, p):
+        self._validate(p)
+        if self.left(p) and self.right(p):
+            replacement = self._subtree_last_position(self.left(p))
+            self._replace(p, replacement.element())
+            p = replacement
+        parent = self.parent(p)
+        self._delete(p)
+        self._rebalance_delete(parent)
+
+    def __delitem__(self, k):
+        if not self.is_empty():
+            p = self._subtree_search(self.root(),k)
+            if k == p.key():
+                self.delete(p)
+                return
+            self._rebalance_access(p)
+        raise KeyError('Key Error: ' + repr(k))
+
+    
