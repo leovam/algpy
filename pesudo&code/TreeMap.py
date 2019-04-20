@@ -92,7 +92,7 @@ class TreeMap(LinkedBinaryTree, MapBase):
             raise KeyError('Key Error: ' + repr(k))
         else:
             p = self._subtree_search(self.root(), k)
-            self._rebalance_acess(p)
+            self._rebalance_access(p)
             if k != p.key():
                 raise KeyError('Key Error: ' + repr(k))
             return p.value()
@@ -139,4 +139,45 @@ class TreeMap(LinkedBinaryTree, MapBase):
             self._rebalance_access(p)
         raise KeyError('Key Error: ' + repr(k))
 
+
+    def _rebalance_insert(self,p):
+        pass
+
+    def _rebalance_delete(self,p):
+        pass
+
+    def _rebalance_access(self,p):
+        pass
+
     
+    def _relink(self, parent, child, make_left_child):
+        if make_left_child:
+            parent._left = child
+        else:
+            parent._right = child
+        if child is not None:
+            child._parent = parent
+    
+    def _rotate(self, p):
+        x = p._node
+        y = x._parent
+        z = y._parent
+        if z is None:
+            self._root = x 
+            x._parent = None
+        else:
+            self._relink(z,x,y==z._left)
+        if x == y._left:
+            self._relink(y,x._right, True)
+            self._relink(x, y, False)
+        
+    def _restructure(self, x):
+        y = self.parent(x)
+        z = self.parent(y)
+        if (x==self.right(y)) == (y==self.right(z)):
+            self._rotate(y)
+            return y
+        else:
+            self._rotate(x)
+            self._rotate(x)
+            return x
